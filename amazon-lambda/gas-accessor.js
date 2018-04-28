@@ -1,0 +1,40 @@
+const google = require('googleapis');
+const OAuth2 = google.auth.OAuth2;
+
+const CLIENT_ID = process.env['CLIENT_ID'];
+const CLIENT_SECRET = process.env['CLIENT_SECRET'];
+const ACCESS_TOKEN = process.env['ACCESS_TOKEN'];
+const REFRESH_TOKEN = process.env['REFRESH_TOKEN'];
+const SCRIPT_ID = process.env['SCRIPT_ID'];
+
+const gasAccessor = {};
+
+gasAccessor.executeFunction = function (functionName, callback, opt_parameter) {
+    console.log('executeFunction started');
+    const auth = new OAuth2(CLIENT_ID, CLIENT_SECRET);
+    auth.setCredentials({
+        access_token: ACCESS_TOKEN,
+        refresh_token: REFRESH_TOKEN
+    });
+    const script = google.script('v1');
+    script.scripts.run({
+        auth: auth,
+        scriptId: SCRIPT_ID,
+        resource: {
+            function: functionName,
+            parameters: [opt_parameter],
+            devMode: true
+        }
+    }, (err, result) => {
+        if (err) {
+            console.error(err);
+        } else {
+            console.log(result.data.response.result);
+            callback(result.data.response.result);
+        }
+    });
+};
+
+gasAccessor.executeFunction('registerOshikko');
+
+module.exports = gasAccessor;
