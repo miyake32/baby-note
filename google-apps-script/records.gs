@@ -1,5 +1,53 @@
+function onFormSubmit(e) {
+  var keys = Object.keys(e.namedValues);
+  var dateKey;
+  var eventKey;
+  var milkKey;
+  var memoKey;
+  
+  keys.forEach(function(key) {
+    if (key.indexOf('日時') > -1) {
+      dateKey = key;
+    } else if (key.indexOf('イベント') > -1) {
+      eventKey = key;
+    } else if (key.indexOf('ミルク') > -1) {
+      milkKey = key;
+    } else if (key.indexOf('メモ') > -1) {
+      memoKey = key;
+    }
+  });
+  
+  var date = e.namedValues[dateKey][0] ? new Date(e.namedValues[dateKey][0]) : new Date();
+  var events = e.namedValues[eventKey][0].split(/,\s*/);
+  var milkVolume = e.namedValues[milkKey][0];
+  var memo = e.namedValues[memoKey][0];
+  
+  var sheet = SpreadsheetApp.getActive().getSheetByName(DASHBOARD_SHEET_NAME);
+  sheet.getRange("A1").setValue(JSON.stringify({e: e, dateKey: dateKey, eventKey: eventKey, milkKey: milkKey, memoKey: memoKey, date: date, events: events, milkVolume: milkVolume, memo: memo}));
+  
+  if (events.indexOf(TYPE_NAME.unchi) > -1) {
+    records.appendJournalRecordWithSpecificDate(date, TYPE.UNCHI);
+  }
+  if (events.indexOf(TYPE_NAME.oshikko) > -1) {
+    records.appendJournalRecordWithSpecificDate(date, TYPE.OSHIKKO);
+  }
+  if (events.indexOf(TYPE_NAME.oppai) > -1) {
+    records.appendJournalRecordWithSpecificDate(date, TYPE.OPPAI);
+  }
+  
+  if (milkVolume) {
+    records.appendJournalRecordWithSpecificDate(date, TYPE.MILK, milkVolume);
+  }
+  if (memo) {
+    records.appendJournalRecordWithSpecificDate(date, TYPE.MEMO, memo);
+  }
+  updateDashboardOnRecordsChange(!!memo);
+}
+
 function registerUnchi() {
   records.appendJournalRecord(TYPE.UNCHI);
+  updateDashboardOnRecordsChange();
+  
   var values = {unchiCount: records.countRecords(TYPE.UNCHI, new Date())};
   Logger.log('registerUnchi : ' + JSON.stringify(values));
   return values;
@@ -7,6 +55,8 @@ function registerUnchi() {
 
 function registerOshikko() {
   records.appendJournalRecord(TYPE.OSHIKKO);
+  updateDashboardOnRecordsChange();
+
   var values = {oshikkoCount: records.countRecords(TYPE.OSHIKKO, new Date())};
   Logger.log('registerOshikko : ' + JSON.stringify(values));
   return values;
@@ -15,6 +65,8 @@ function registerOshikko() {
 function registerUnchiAndOshikko() {
   records.appendJournalRecord(TYPE.UNCHI);
   records.appendJournalRecord(TYPE.OSHIKKO);
+  updateDashboardOnRecordsChange();
+  
   var values = {
     unchiCount: records.countRecords(TYPE.UNCHI, new Date()), 
     oshikkoCount: records.countRecords(TYPE.OSHIKKO, new Date())
@@ -25,6 +77,8 @@ function registerUnchiAndOshikko() {
 
 function registerOppai() {
   records.appendJournalRecord(TYPE.OPPAI);
+  updateDashboardOnRecordsChange();
+
   var values = {oppaiCount: records.countRecords(TYPE.OPPAI, new Date())};
   Logger.log('registerOppai : ' + JSON.stringify(values));
   return values;
@@ -32,6 +86,7 @@ function registerOppai() {
 
 function registerMilk(volume) {
   records.appendJournalRecord(TYPE.MILK, volume || 0);
+  updateDashboardOnRecordsChange();
   
   var dateStr = new Date().toLocaleDateString();
   var retrievedRecords = records.getRecords([
@@ -50,6 +105,13 @@ function registerMilk(volume) {
   var values = {sumOfMilkVolume: sum};
   Logger.log('registerMilk : ' + JSON.stringify(values));
   return values;
+}
+
+function registerMemo(content) {
+  records.appendJournalRecord(TYPE.MEMO, content);
+  updateDashboardOnRecordsChange(true);
+
+  return {status: 0};
 }
 
 function getDailySummary(date_str) {
@@ -115,12 +177,16 @@ function getTimeFromLastOppaiAndMilk() {
 var records = {};
 
 records.appendJournalRecord = function (type, opt_parameter) {
+  var currentDateTime = new Date();
+  records.appendJournalRecordWithSpecificDate(currentDateTime, type, opt_parameter);
+};
+
+records.appendJournalRecordWithSpecificDate = function (date, type, opt_parameter) {
   var row = [];
-  var currentTime = new Date();
-  row.push("'" + currentTime.toLocaleDateString());
-  row.push("'" + currentTime.toLocaleTimeString().replace(/[^:0-9]/g, ''));
+  row.push("'" + date.toLocaleDateString());
+  row.push("'" + date.toLocaleTimeString().replace(/[^:0-9]/g, ''));
   row.push(TYPE_NAME[type]);
-  if (type === TYPE.MILK) {
+  if (opt_parameter) {
       row.push(opt_parameter);
   }
   
@@ -142,21 +208,16 @@ records.countRecords = function (type, opt_date) {
 
 records.getLastRecord = function () {
   var sheet = SpreadsheetApp.getActive().getSheetByName(RECORDS_SHEET_NAME);
-  var rows = sheet.getDataRange().getValues();
-  var keys = rows.slice(0, 1)[0];
+  var retrievedRecords = records.getRecords();
   
-  var indexOfEvent = keys.indexOf(COLUMN.EVENT);
-  var typeNames = [].slice.call(arguments).map(function(type) {
-    return TYPE_NAME[type];
-  });
-
+  var types = [].slice.call(arguments);
   var recordByType = {};
 
-  typeNames.forEach(function(typeName) {
-    for (var i = rows.length - 1; i > 0; i--) {
-      var row = rows[i];
-      if (row[indexOfEvent] === typeName) {
-        recordByType[TYPE_BY_NAME[typeName]] = records.createRecordFromRow(row, keys);      
+  types.forEach(function(type) {
+    for (var i = retrievedRecords.length - 1; i > 0; i--) {
+      var record = retrievedRecords[i];
+      if (record.type === type) {
+        recordByType[type] = record;
         return;
       }
     }
@@ -165,7 +226,9 @@ records.getLastRecord = function () {
   return recordByType;
 }
 
-records.getRecords = function (opt_filters) {
+records.GET_RECORDS_MAX_COUNT = 100;
+
+records.getRecords = function (opt_filters) { 
   var sheet = SpreadsheetApp.getActive().getSheetByName(RECORDS_SHEET_NAME);
   var rows = sheet.getDataRange().getValues();
   var keys = rows.slice(0, 1)[0];
@@ -201,7 +264,21 @@ records.getRecords = function (opt_filters) {
     if (filter(row)) {
       createdRecords.push(records.createRecordFromRow(row, keys)); 
     }
+    
+    // limit number of records up to 100 when filter is not used for speed
+    if (!opt_filters && createdRecords.length === records.GET_RECORDS_MAX_COUNT) {
+      break;
+    }
   }
+  createdRecords.sort(function(record1, record2) {
+    var dateCompareResult = record1.date.localeCompare(record2.date);
+    if (dateCompareResult !== 0) {
+      return dateCompareResult;
+    }
+    var time1 = record1.time.replace(/^(?=\d:)/, '0');
+    var time2 = record2.time.replace(/^(?=\d:)/, '0');
+    return time1.localeCompare(time2);
+  });
   Logger.log('getRecords(' + JSON.stringify(opt_filters) + ') : ' + JSON.stringify(createdRecords));
   return createdRecords;
 }

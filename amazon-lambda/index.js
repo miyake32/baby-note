@@ -49,6 +49,19 @@ const handlers = {
             }.bind(this), volume);
         }
     },
+    'RegisterMemoIntent': function () {
+        console.log('Processing RegisterMemoIntent');
+        var content = this.event.request.intent.slots.content.value;
+        if ((!content || content === '?') && this.event.request.dialogState !== "COMPLETED") {
+            console.warn('No content');
+            this.emit(':delegate');
+        } else {
+            console.log('content : ' + content);
+            gasAccessor.executeFunction('registerMemo', function (result) {
+                this.emit(':tell', 'メモに' + content + 'を記録しました');
+            }.bind(this), content);
+        }
+    },
     'GetDailySummaryIntent': function () {
         console.log('Processing GetDailySummaryIntent');
         var date = this.event.request.intent.slots.date.value;

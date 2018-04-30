@@ -1,5 +1,6 @@
 function onOpen(e) {
   updateDaySummary();
+  updateMemoList();
 }
 
 /**
@@ -9,6 +10,40 @@ function updateDaySummary() {
   dashboard.writeDaySummary(dashboard.createDaySummary());
 }
 
+function updateMemoList() {
+  var retrievedRecords = records.getRecords([{
+    column: COLUMN.EVENT, 
+    regExp: new RegExp('^' + TYPE_NAME.memo + '$')
+  }]);
+  
+  var sheet = SpreadsheetApp.getActive().getSheetByName(DASHBOARD_SHEET_NAME);
+  var recordsIdx = retrievedRecords.length - 1;
+  var memoIdx = 0;
+  while (memoIdx < dashboard.MEMO_ROW_COUNT) {
+    var record = retrievedRecords[recordsIdx];
+    var rowNumber = 50 + memoIdx;
+
+    if (record) {
+      sheet.getRange("B" + rowNumber).setValue(record.date);
+      sheet.getRange("C" + rowNumber).setValue(record.time);
+      sheet.getRange("D" + rowNumber).setValue(record.parameter);
+    } else {
+      sheet.getRange("B" + rowNumber).setValue('');
+      sheet.getRange("C" + rowNumber).setValue('');
+      sheet.getRange("D" + rowNumber).setValue('');
+    }
+    recordsIdx--;
+    memoIdx++;
+  }
+}
+
+function updateDashboardOnRecordsChange(updateMemo) {
+  updateDaySummary();
+  if (updateMemo) {
+    updateMemoList();
+  }
+}
+
 var dashboard = {};
 
 /**
@@ -16,11 +51,13 @@ var dashboard = {};
  */
 dashboard.DAY_SUMMARY_INTERVAL_HOUR = 1;
 dashboard.DAY_SUMMARY_ROW_COUNT = 24 / dashboard.DAY_SUMMARY_INTERVAL_HOUR;
+dashboard.MEMO_ROW_COUNT = 10;
 dashboard.ICON = {
   unchi : '💩',
   oshikko : '💦',
   oppai : '🤱',
-  milk : '🍼'
+  milk : '🍼',
+  memo : '📔'
 };
 
 dashboard.createDaySummary = function() {
@@ -43,7 +80,7 @@ dashboard.createDaySummary = function() {
   for (var i = 0; i < dashboard.DAY_SUMMARY_ROW_COUNT; i++) {
     var startDateTime = new Date(baseDateTime);
     startDateTime.setHours(startDateTime.getHours() - dashboard.DAY_SUMMARY_INTERVAL_HOUR * i);
-    summaries.push({startDateTime: startDateTime, unchiCnt: 0, oshikkoCnt: 0, oppaiCnt: 0, milkCnt: 0, milkVolume: 0});
+    summaries.push({startDateTime: startDateTime, unchiCnt: 0, oshikkoCnt: 0, oppaiCnt: 0, milkCnt: 0, milkVolume: 0, memoCnt: 0});
   }
   
   var recordsIdx = retrievedRecords.length - 1;
@@ -70,6 +107,9 @@ dashboard.createDaySummary = function() {
       case TYPE.MILK:
         summary.milkCnt++;
         summary.milkVolume += record.parameter;
+        break;
+      case TYPE.MEMO:
+        summary.memoCnt++;
         break;
     }
     
@@ -101,10 +141,14 @@ dashboard.writeDaySummary = function(summaries) {
     if (summary.milkCnt) {
       summaryRangeString = (summaryRangeString ? summaryRangeString + ' ' : '') + dashboard.createSummaryString(TYPE.MILK, summary.milkCnt);
     }
+    if (summary.memoCnt) {
+      summaryRangeString = (summaryRangeString ? summaryRangeString + ' ' : '') + dashboard.createSummaryString(TYPE.MEMO, summary.memoCnt);
+    }
     
-    var dateTimeRange = sheet.getRange('B' + (5 + index));
+    var rowNumber = 5 + index;
+    var dateTimeRange = sheet.getRange('B' + rowNumber);
     dateTimeRange.setValue(dateTimeRangeString)
-    var summaryRange = sheet.getRange('D' + (5 + index));
+    var summaryRange = sheet.getRange('D' + rowNumber);
     summaryRange.setValue(summaryRangeString);
   });
 };

@@ -10,7 +10,7 @@ const SCRIPT_ID = process.env['SCRIPT_ID'];
 const gasAccessor = {};
 
 gasAccessor.executeFunction = function (functionName, callback, opt_parameter) {
-    console.log('executeFunction started');
+    console.log('executeFunction started [functionName=' + functionName + ', parameter=' + opt_parameter);
     const auth = new OAuth2(CLIENT_ID, CLIENT_SECRET);
     auth.setCredentials({
         access_token: ACCESS_TOKEN,

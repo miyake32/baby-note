@@ -9,14 +9,16 @@ var TYPE = {
   UNCHI: 'unchi', 
   OSHIKKO: 'oshikko', 
   OPPAI: 'oppai', 
-  MILK: 'milk'
+  MILK: 'milk',
+  MEMO: 'memo'
 };
 
 var TYPE_NAME = {
   'unchi': 'うんち',
   'oshikko': 'おしっこ',
   'oppai': 'おっぱい',
-  'milk': 'ミルク'
+  'milk': 'ミルク',
+  'memo': 'メモ'
 };
 
 var TYPE_BY_NAME = {};
