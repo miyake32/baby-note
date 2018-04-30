@@ -1,11 +1,3 @@
-function onOpen(e) {
-  updateDaySummary();
-  updateMemoList();
-}
-
-/**
- * 一日のサマリーを更新
- */
 function updateDaySummary() {
   dashboard.writeDaySummary(dashboard.createDaySummary());
 }
