@@ -1,53 +1,46 @@
-var TYPE = {
-  UNCHI: 'unchi', 
-  OSHIKKO: 'oshikko', 
-  OPPAI: 'oppai', 
-  MILK: 'milk'
-};
-
 function registerUnchi() {
-  appendJournalRecord(TYPE.UNCHI);
-  var values = {unchiCount: countRecords(TYPE.UNCHI, new Date())};
+  records.appendJournalRecord(TYPE.UNCHI);
+  var values = {unchiCount: records.countRecords(TYPE.UNCHI, new Date())};
   Logger.log('registerUnchi : ' + JSON.stringify(values));
   return values;
 }
 
 function registerOshikko() {
-  appendJournalRecord(TYPE.OSHIKKO);
-  var values = {oshikkoCount: countRecords(TYPE.OSHIKKO, new Date())};
+  records.appendJournalRecord(TYPE.OSHIKKO);
+  var values = {oshikkoCount: records.countRecords(TYPE.OSHIKKO, new Date())};
   Logger.log('registerOshikko : ' + JSON.stringify(values));
   return values;
 }
 
 function registerUnchiAndOshikko() {
-  appendJournalRecord(TYPE.UNCHI);
-  appendJournalRecord(TYPE.OSHIKKO);
+  records.appendJournalRecord(TYPE.UNCHI);
+  records.appendJournalRecord(TYPE.OSHIKKO);
   var values = {
-    unchiCount: countRecords(TYPE.UNCHI, new Date()), 
-    oshikkoCount: countRecords(TYPE.OSHIKKO, new Date())
+    unchiCount: records.countRecords(TYPE.UNCHI, new Date()), 
+    oshikkoCount: records.countRecords(TYPE.OSHIKKO, new Date())
   };
   Logger.log('registerUnchiAndOshikko : ' + JSON.stringify(values));
   return values;
 }
 
 function registerOppai() {
-  appendJournalRecord(TYPE.OPPAI);
-  var values = {oppaiCount: countRecords(TYPE.OPPAI, new Date())};
+  records.appendJournalRecord(TYPE.OPPAI);
+  var values = {oppaiCount: records.countRecords(TYPE.OPPAI, new Date())};
   Logger.log('registerOppai : ' + JSON.stringify(values));
   return values;
 }
 
 function registerMilk(volume) {
-  appendJournalRecord(TYPE.MILK, volume || 0);
+  records.appendJournalRecord(TYPE.MILK, volume || 0);
   
   var dateStr = new Date().toLocaleDateString();
-  var records = getRecords([
-    {column: 'date', regExp: new RegExp('^' + dateStr + '$')},
-    {column: 'event', regExp: new RegExp('^' + TYPE_NAME[TYPE.MILK] + '$')}
+  var retrievedRecords = records.getRecords([
+    {column: COLUMN.DATE, regExp: new RegExp('^' + dateStr + '$')},
+    {column: COLUMN.EVENT, regExp: new RegExp('^' + TYPE_NAME[TYPE.MILK] + '$')}
   ]);
   
   var sum = 0;
-  records.forEach(function(item) {
+  retrievedRecords.forEach(function(item) {
     var volume = Number(item.parameter);
     if (!isNaN(volume)) {
       sum += volume;
@@ -61,7 +54,7 @@ function registerMilk(volume) {
 
 function getDailySummary(date_str) {
   var date = date_str ? new Date(date_str) : new Date();
-  var records = getRecords([{column: 'date', regExp: new RegExp(date.toLocaleDateString())}]);
+  var retrievedRecords = records.getRecords([{column: COLUMN.DATE, regExp: new RegExp(date.toLocaleDateString())}]);
   
   var values =  {
     targetDate: date.toLocaleDateString(),
@@ -72,7 +65,7 @@ function getDailySummary(date_str) {
     milkVolume: 0
   }
   
-  records.forEach(function(record) {
+  retrievedRecords.forEach(function(record) {
     switch (record.type) {
       case TYPE.UNCHI:
         values.unchiCount++;
@@ -93,48 +86,35 @@ function getDailySummary(date_str) {
 }
 
 function getTimeFromLastUnchi() {
-  var values = getTimeElapsedFrom(getLastRecord(TYPE.UNCHI)[TYPE.UNCHI]);
+  var values = records.getTimeElapsedFrom(records.getLastRecord(TYPE.UNCHI)[TYPE.UNCHI]);
   Logger.log('getTimeFromLastUnchi : ' + JSON.stringify(values));
   return values;
 }
 
 function getTimeFromLastOshikko() {
-  var values = getTimeElapsedFrom(getLastRecord(TYPE.OSHIKKO)[TYPE.OSHIKKO]);
+  var values = records.getTimeElapsedFrom(records.getLastRecord(TYPE.OSHIKKO)[TYPE.OSHIKKO]);
   Logger.log('getTimeFromLastOshikko : ' + JSON.stringify(values));
   return values;
 }
 
 function getTimeFromLastOppaiAndMilk() {
-  var lastRecords = getLastRecord(TYPE.OPPAI, TYPE.MILK);
+  var lastRecords = records.getLastRecord(TYPE.OPPAI, TYPE.MILK);
   var values = {};
   if (lastRecords[TYPE.OPPAI]) {
-    values.oppai = getTimeElapsedFrom(lastRecords[TYPE.OPPAI]);
+    values.oppai = records.getTimeElapsedFrom(lastRecords[TYPE.OPPAI]);
   }
   if (lastRecords[TYPE.MILK]) {
-    values.milk = getTimeElapsedFrom(lastRecords[TYPE.MILK]);
+    values.milk = records.getTimeElapsedFrom(lastRecords[TYPE.MILK]);
     values.milk.volume = lastRecords[TYPE.MILK].parameter;
   }
   Logger.log('getTimeFromLastOppaiAndMilk : ' + JSON.stringify(values));
   return values;
 }
 
-// ====================
-//  private functions
-// ====================
-var RECORDS_SHEET_NAME = 'records';
-var TYPE_NAME = {
-  'unchi': 'うんち',
-  'oshikko': 'おしっこ',
-  'oppai': 'おっぱい',
-  'milk': 'ミルク'
-};
-var TYPE_BY_NAME = {};
-Object.keys(TYPE_NAME).forEach(function(key) {
-  TYPE_BY_NAME[TYPE_NAME[key]] = key;
-});
-    
 
-function appendJournalRecord(type, opt_parameter) {
+var records = {};
+
+records.appendJournalRecord = function (type, opt_parameter) {
   var row = [];
   var currentTime = new Date();
   row.push("'" + currentTime.toLocaleDateString());
@@ -146,26 +126,26 @@ function appendJournalRecord(type, opt_parameter) {
   
   var sheet = SpreadsheetApp.getActive().getSheetByName(RECORDS_SHEET_NAME);
   sheet.appendRow(row);
-}
+};
 
-function countRecords(type, opt_date) {
+records.countRecords = function (type, opt_date) {
   var date = opt_date ? new Date(opt_date) : new Date();
   var dateStr = date.toLocaleDateString();
 
-  var records = getRecords([
-    {column: 'date', regExp: new RegExp('^' + dateStr + '$')},
-    {column: 'event', regExp: new RegExp('^' + TYPE_NAME[type] + '$')}
+  var retrievedRecords = records.getRecords([
+    {column: COLUMN.DATE, regExp: new RegExp('^' + dateStr + '$')},
+    {column: COLUMN.EVENT, regExp: new RegExp('^' + TYPE_NAME[type] + '$')}
   ]);
   
-  return records.length;  
-}
+  return retrievedRecords.length;  
+};
 
-function getLastRecord() {
+records.getLastRecord = function () {
   var sheet = SpreadsheetApp.getActive().getSheetByName(RECORDS_SHEET_NAME);
   var rows = sheet.getDataRange().getValues();
   var keys = rows.slice(0, 1)[0];
   
-  var indexOfEvent = keys.indexOf('event');
+  var indexOfEvent = keys.indexOf(COLUMN.EVENT);
   var typeNames = [].slice.call(arguments).map(function(type) {
     return TYPE_NAME[type];
   });
@@ -176,7 +156,7 @@ function getLastRecord() {
     for (var i = rows.length - 1; i > 0; i--) {
       var row = rows[i];
       if (row[indexOfEvent] === typeName) {
-        recordByType[TYPE_BY_NAME[typeName]] = createRecordFromRow(row, keys);      
+        recordByType[TYPE_BY_NAME[typeName]] = records.createRecordFromRow(row, keys);      
         return;
       }
     }
@@ -185,7 +165,7 @@ function getLastRecord() {
   return recordByType;
 }
 
-function getRecords(opt_filters) {
+records.getRecords = function (opt_filters) {
   var sheet = SpreadsheetApp.getActive().getSheetByName(RECORDS_SHEET_NAME);
   var rows = sheet.getDataRange().getValues();
   var keys = rows.slice(0, 1)[0];
@@ -214,30 +194,30 @@ function getRecords(opt_filters) {
     };
   }
 
-  var records = [];  
+  var createdRecords = [];  
   // start from 1 to skip header row
   for (var i = 1; i < rows.length; i++) {
     var row = rows[i];
     if (filter(row)) {
-      records.push(createRecordFromRow(row, keys)); 
+      createdRecords.push(records.createRecordFromRow(row, keys)); 
     }
   }
-  Logger.log('getRecords(' + JSON.stringify(opt_filters) + ') : ' + JSON.stringify(records));
-  return records;
+  Logger.log('getRecords(' + JSON.stringify(opt_filters) + ') : ' + JSON.stringify(createdRecords));
+  return createdRecords;
 }
 
-function createRecordFromRow(row, keys) {
+records.createRecordFromRow = function (row, keys) {
   var record = {};
   row.forEach(function(item, index) {
     record[keys[index]] = item;
-    if (keys[index] === 'event') {
+    if (keys[index] === COLUMN.EVENT) {
       record['type'] = TYPE_BY_NAME[item];
     }
   });
   return record;
 }
 
-function getTimeElapsedFrom(lastRecord) {
+records.getTimeElapsedFrom = function (lastRecord) {
   if (!lastRecord) {
     return null;
   }
