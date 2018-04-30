@@ -35,6 +35,4 @@ gasAccessor.executeFunction = function (functionName, callback, opt_parameter) {
     });
 };
 
-gasAccessor.executeFunction('registerOshikko');
-
 module.exports = gasAccessor;
