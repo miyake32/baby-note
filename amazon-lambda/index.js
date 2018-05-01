@@ -6,12 +6,12 @@ const handlers = {
     // インテントに紐付かないリクエスト
     'LaunchRequest': function () {
         console.log('Processing LaunchRequest');
-        this.emit(':tell', '何をしますか？');
+        this.emit('AMAZON.HelpIntent');
     },
     // スキルの使い方を尋ねるインテント
     'AMAZON.HelpIntent': function () {
         console.log('Processing HelpIntent');
-        this.emit(':tell', 'うんち、おしっこ、おっぱい、ミルクが記録できます');
+        this.emit(':ask', 'うんち、おしっこ、おっぱい、ミルクが記録できます。何をしますか？');
     },
     'RegisterUnchiIntent': function () {
         console.log('Processing RegisterUnchiIntent');
@@ -148,7 +148,7 @@ function createElapsedTimeString(hours, minutes) {
 // Lambda関数のメイン処理
 exports.handler = function (event, context, callback) {
     var alexa = Alexa.handler(event, context); // Alexa SDKのインスタンス生成
-    //alexa.appId = process.env.APP_ID;
+    alexa.appId = process.env.APP_ID;
     alexa.registerHandlers(handlers); // ハンドラの登録
     alexa.execute();                  // インスタンスの実行
 };
