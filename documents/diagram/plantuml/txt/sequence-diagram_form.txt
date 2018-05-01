@@ -1,0 +1,17 @@
+@startuml
+!include style.inc
+
+actor Parents as parents
+participant "Google Forms" as form
+participant "Google Apps Script" as gas
+
+parents->form:Input and send records
+activate form
+
+form->gas:Emit event
+deactivate form
+
+gas->gas:Write records\nto spreadsheet
+
+@enduml
+

@@ -1,0 +1,37 @@
+@startuml
+!include style.inc
+
+actor "Parents" as parents << Human >>
+
+node "Amazon Echo Dot" as echo << Device >>
+
+cloud "Alexa Service" as alexa {
+  component "Custom Skill" as skill << Component >>
+}
+
+cloud "AWS Lambda" as lambda {
+  component Function as function << Component >>
+}
+
+cloud "Google Apps Script" as gas {
+  component Project as project << Component >>
+  interface "Web API" as gasApi
+}
+
+cloud "Google Document" as doc {
+  file "Google Spreadsheet" as spreadsheet
+  rectangle "Google Forms" as form <<Web Service>> 
+}
+
+parents.>echo
+echo.>skill
+skill.>function
+project--gasApi
+function.>gasApi
+project.>spreadsheet
+parents.>spreadsheet
+form.>spreadsheet
+project.>form:listen
+parents.>form
+
+@enduml

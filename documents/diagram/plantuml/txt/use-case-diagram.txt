@@ -1,0 +1,26 @@
+@startuml
+!include style.inc
+
+left to right direction
+
+actor Parents as parents << Human >>
+rectangle babyNote {
+  parents--(register)
+  (register via voice command)-up.>(register):<<extends>>
+  (register via form input)-up.>(register):<<extends>>
+  parents--(get summary)
+  (ask summary via voice command)-up.>(get summary):<<extends>>
+  (see summary in spreadsheet)-up.>(get summary):<<extends>>
+  parents--(get last registered record)
+  (get last registered record via voice command)-up.>(get last registered record):<<extends>>
+  parents--(check registered data)
+  parents--(remove wrong data)
+  parents--(edit wrong data)
+}
+
+@enduml
+
+
+
+
+

@@ -1,0 +1,38 @@
+@startuml
+!include style.inc
+
+actor Parents as parents
+participant "Amazon Echo Dot" as echo
+participant "Alexa Custom Skill" as skill
+participant "Lambda Function" as function
+participant "Google Apps Script" as gas
+
+parents->echo:Request
+activate echo
+
+echo->skill
+activate skill
+
+skill->skill:Detect intent
+skill->function:Execute function\nwith detected intent
+activate function
+
+function->gas:Execute function\naccording to intent
+activate gas
+
+gas->gas:Write or read records\nin spreadsheet
+gas-->function:Return value
+deactivate gas
+
+function->function:Create message\nwith return value
+function-->skill:Message
+deactivate function
+
+skill-->echo
+deactivate skill
+
+echo-->parents:Speak message
+deactivate echo
+
+@enduml
+
