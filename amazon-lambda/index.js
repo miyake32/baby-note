@@ -146,14 +146,9 @@ function createElapsedTimeString(hours, minutes) {
 }
 
 // Lambda関数のメイン処理
-exports.handler = function (event, context, callback) {
-    var startTime = Date.now();
-    
+exports.handler = function (event, context, callback) {    
     var alexa = Alexa.handler(event, context); // Alexa SDKのインスタンス生成
     alexa.appId = process.env.APP_ID;
     alexa.registerHandlers(handlers); // ハンドラの登録
     alexa.execute();                  // インスタンスの実行
-    
-    var executionTime = Date.now() - startTime;
-    console.log('Main process took ' + executionTime + ' ms');
 };

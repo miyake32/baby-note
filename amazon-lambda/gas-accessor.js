@@ -29,14 +29,14 @@ gasAccessor.executeFunction = function (functionName, callback, opt_parameter) {
         }
     }, (err, result) => {
         var turnAroundTime = Date.now() - startTime;
-        console.log(functionName + ' execution took ' + turnAroundTime + ' ms');
+        console.log(functionName + '  API execution took ' + turnAroundTime + ' ms');
         if (err) {
             console.error(err);
         } else {
             console.log(result.data.response.result);
             callback(result.data.response.result);
             var callbackExecutionTime = Date.now() - startTime - turnAroundTime;
-            console.log('callback execution took ' + callBackExecutionTime + ' ms');
+            console.log('callback execution took ' + callbackExecutionTime + ' ms');
         }
     });
 };
