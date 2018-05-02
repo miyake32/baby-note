@@ -1,4 +1,6 @@
 function onFormSubmit(e) {
+  var startTime = Date.now();
+  
   var keys = Object.keys(e.namedValues);
   var dateKey;
   var eventKey;
@@ -21,10 +23,7 @@ function onFormSubmit(e) {
   var events = e.namedValues[eventKey][0].split(/,\s*/);
   var milkVolume = e.namedValues[milkKey][0];
   var memo = e.namedValues[memoKey][0];
-  
-  var sheet = SpreadsheetApp.getActive().getSheetByName(DASHBOARD_SHEET_NAME);
-  sheet.getRange("A1").setValue(JSON.stringify({e: e, dateKey: dateKey, eventKey: eventKey, milkKey: milkKey, memoKey: memoKey, date: date, events: events, milkVolume: milkVolume, memo: memo}));
-  
+    
   if (events.indexOf(TYPE_NAME.unchi) > -1) {
     records.appendJournalRecordWithSpecificDate(date, TYPE.UNCHI);
   }
@@ -42,27 +41,48 @@ function onFormSubmit(e) {
     records.appendJournalRecordWithSpecificDate(date, TYPE.MEMO, memo);
   }
   updateDashboardOnRecordsChange(!!memo);
+  
+  var executionTime = Date.now() - startTime;
+  Logger.log('onFormSubmit took ' + executionTime + ' ms');
+  
+  // write debug information
+  // write process takes long time, but it's okay because this function don't need speed
+  dashboard.getSheet().getRange("H2").setValue(JSON.stringify({e: e, dateKey: dateKey, eventKey: eventKey, milkKey: milkKey, memoKey: memoKey, date: date, events: events, milkVolume: milkVolume, memo: memo, executionTime: executionTime}));
 }
 
 function registerUnchi() {
+  var startTime = Date.now();
+
   records.appendJournalRecord(TYPE.UNCHI);
   updateDashboardOnRecordsChange();
   
   var values = {unchiCount: records.countRecords(TYPE.UNCHI, new Date())};
   Logger.log('registerUnchi : ' + JSON.stringify(values));
+  
+  var executionTime = Date.now() - startTime;
+  values.executionTime = executionTime;
+  Logger.log('registerUnchi took ' + executionTime + ' ms');
   return values;
 }
 
 function registerOshikko() {
+  var startTime = Date.now();
+
   records.appendJournalRecord(TYPE.OSHIKKO);
   updateDashboardOnRecordsChange();
 
   var values = {oshikkoCount: records.countRecords(TYPE.OSHIKKO, new Date())};
   Logger.log('registerOshikko : ' + JSON.stringify(values));
+  
+  var executionTime = Date.now() - startTime;
+  values.executionTime = executionTime;
+  Logger.log('registerOshikko took ' + executionTime + ' ms');
   return values;
 }
 
 function registerUnchiAndOshikko() {
+  var startTime = Date.now();
+
   records.appendJournalRecord(TYPE.UNCHI);
   records.appendJournalRecord(TYPE.OSHIKKO);
   updateDashboardOnRecordsChange();
@@ -72,19 +92,31 @@ function registerUnchiAndOshikko() {
     oshikkoCount: records.countRecords(TYPE.OSHIKKO, new Date())
   };
   Logger.log('registerUnchiAndOshikko : ' + JSON.stringify(values));
+  
+  var executionTime = Date.now() - startTime;
+  values.executionTime = executionTime;
+  Logger.log('registerUnchiAndOshikko took ' + executionTime + ' ms');
   return values;
 }
 
 function registerOppai() {
+  var startTime = Date.now();
+
   records.appendJournalRecord(TYPE.OPPAI);
   updateDashboardOnRecordsChange();
 
   var values = {oppaiCount: records.countRecords(TYPE.OPPAI, new Date())};
   Logger.log('registerOppai : ' + JSON.stringify(values));
+  
+  var executionTime = Date.now() - startTime;
+  values.executionTime = executionTime;
+  Logger.log('registerOppai took ' + executionTime + ' ms');
   return values;
 }
 
 function registerMilk(volume) {
+  var startTime = Date.now();
+
   records.appendJournalRecord(TYPE.MILK, volume || 0);
   updateDashboardOnRecordsChange();
   
@@ -104,17 +136,30 @@ function registerMilk(volume) {
   
   var values = {sumOfMilkVolume: sum};
   Logger.log('registerMilk : ' + JSON.stringify(values));
+  
+  var executionTime = Date.now() - startTime;
+  values.executionTime = executionTime;
+  Logger.log('registerMilk took ' + executionTime + ' ms');
   return values;
 }
 
 function registerMemo(content) {
+  var startTime = Date.now();
+
   records.appendJournalRecord(TYPE.MEMO, content);
   updateDashboardOnRecordsChange(true);
+  
+  values = {};
 
-  return {status: 0};
+  var executionTime = Date.now() - startTime;
+  values.executionTime = executionTime;
+  Logger.log('registerMemo took ' + executionTime + ' ms');
+  return values;
 }
 
 function getDailySummary(date_str) {
+  var startTime = Date.now();
+
   var date = date_str ? new Date(date_str) : new Date();
   var retrievedRecords = records.getRecords([{column: COLUMN.DATE, regExp: new RegExp(date.toLocaleDateString())}]);
   
@@ -144,22 +189,40 @@ function getDailySummary(date_str) {
     }
   });
   Logger.log('getDailySummary : ' + JSON.stringify(values));
+  
+  var executionTime = Date.now() - startTime;
+  values.executionTime = executionTime;
+  Logger.log('getDailySummary took ' + executionTime + ' ms');
   return values;
 }
 
 function getTimeFromLastUnchi() {
+  var startTime = Date.now();
+
   var values = records.getTimeElapsedFrom(records.getLastRecord(TYPE.UNCHI)[TYPE.UNCHI]);
   Logger.log('getTimeFromLastUnchi : ' + JSON.stringify(values));
+  
+  var executionTime = Date.now() - startTime;
+  values.executionTime = executionTime;
+  Logger.log('getTimeFromLastUnchi took ' + executionTime + ' ms');
   return values;
 }
 
 function getTimeFromLastOshikko() {
+  var startTime = Date.now();
+
   var values = records.getTimeElapsedFrom(records.getLastRecord(TYPE.OSHIKKO)[TYPE.OSHIKKO]);
   Logger.log('getTimeFromLastOshikko : ' + JSON.stringify(values));
+  
+  var executionTime = Date.now() - startTime;
+  values.executionTime = executionTime;
+  Logger.log('getTimeFromLastOshikko took ' + executionTime + ' ms');
   return values;
 }
 
 function getTimeFromLastOppaiAndMilk() {
+  var startTime = Date.now();
+
   var lastRecords = records.getLastRecord(TYPE.OPPAI, TYPE.MILK);
   var values = {};
   if (lastRecords[TYPE.OPPAI]) {
@@ -170,18 +233,36 @@ function getTimeFromLastOppaiAndMilk() {
     values.milk.volume = lastRecords[TYPE.MILK].parameter;
   }
   Logger.log('getTimeFromLastOppaiAndMilk : ' + JSON.stringify(values));
+  
+  var executionTime = Date.now() - startTime;
+  values.executionTime = executionTime;
+  Logger.log('getTimeFromLastOppaiAndMilk took ' + executionTime + ' ms');
   return values;
 }
 
 
 var records = {};
 
+records.getSheet = function () {
+  if (!records.sheet) {
+    records.sheet = SpreadsheetApp.getActive().getSheetByName('records');
+  }
+  return records.sheet;
+}
+
 records.appendJournalRecord = function (type, opt_parameter) {
+  var startTime = Date.now();
+
   var currentDateTime = new Date();
   records.appendJournalRecordWithSpecificDate(currentDateTime, type, opt_parameter);
+  
+  var executionTime = Date.now() - startTime;
+  Logger.log('appendJournalRecord took ' + executionTime + ' ms');
 };
 
 records.appendJournalRecordWithSpecificDate = function (date, type, opt_parameter) {
+  var startTime = Date.now();
+  
   var row = [];
   row.push("'" + date.toLocaleDateString());
   row.push("'" + date.toLocaleTimeString().replace(/[^:0-9]/g, ''));
@@ -190,8 +271,10 @@ records.appendJournalRecordWithSpecificDate = function (date, type, opt_paramete
       row.push(opt_parameter);
   }
   
-  var sheet = SpreadsheetApp.getActive().getSheetByName(RECORDS_SHEET_NAME);
-  sheet.appendRow(row);
+  records.getSheet().appendRow(row);
+  
+  var executionTime = Date.now() - startTime;
+  Logger.log('appendJournalRecordWithSpecificDate took ' + executionTime + ' ms');
 };
 
 records.countRecords = function (type, opt_date) {
@@ -207,7 +290,6 @@ records.countRecords = function (type, opt_date) {
 };
 
 records.getLastRecord = function () {
-  var sheet = SpreadsheetApp.getActive().getSheetByName(RECORDS_SHEET_NAME);
   var retrievedRecords = records.getRecords();
   
   var types = [].slice.call(arguments);
@@ -228,9 +310,10 @@ records.getLastRecord = function () {
 
 records.GET_RECORDS_MAX_COUNT = 100;
 
-records.getRecords = function (opt_filters) { 
-  var sheet = SpreadsheetApp.getActive().getSheetByName(RECORDS_SHEET_NAME);
-  var rows = sheet.getDataRange().getValues();
+records.getRecords = function (opt_filters) {
+  var startTime = Date.now();
+  
+  var rows = records.getSheet().getDataRange().getValues();
   var keys = rows.slice(0, 1)[0];
   
   var filter;
@@ -280,6 +363,9 @@ records.getRecords = function (opt_filters) {
     return time1.localeCompare(time2);
   });
   Logger.log('getRecords(' + JSON.stringify(opt_filters) + ') : ' + JSON.stringify(createdRecords));
+  
+  var executionTime = Date.now() - startTime;
+  Logger.log('getRecords took ' + executionTime + ' ms');
   return createdRecords;
 }
 

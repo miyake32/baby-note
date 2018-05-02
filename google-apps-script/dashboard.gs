@@ -1,42 +1,59 @@
 function updateDaySummary() {
+  var startTime = Date.now();
   dashboard.writeDaySummary(dashboard.createDaySummary());
+  var executionTime = Date.now() - startTime;
+  Logger.log('updateDaySummary took ' + executionTime + ' ms');
 }
 
 function updateMemoList() {
+  var startTime = Date.now();
+  
   var retrievedRecords = records.getRecords([{
     column: COLUMN.EVENT, 
     regExp: new RegExp('^' + TYPE_NAME.memo + '$')
   }]);
   
-  var sheet = SpreadsheetApp.getActive().getSheetByName(DASHBOARD_SHEET_NAME);
   var recordsIdx = retrievedRecords.length - 1;
   var memoIdx = 0;
+  var rows = [];
   while (memoIdx < dashboard.MEMO_ROW_COUNT) {
     var record = retrievedRecords[recordsIdx];
-    var rowNumber = 50 + memoIdx;
 
     if (record) {
-      sheet.getRange("B" + rowNumber).setValue(record.date);
-      sheet.getRange("C" + rowNumber).setValue(record.time);
-      sheet.getRange("D" + rowNumber).setValue(record.parameter);
+      rows.push([record.date, record.time, record.parameter, '', '', '']);
     } else {
-      sheet.getRange("B" + rowNumber).setValue('');
-      sheet.getRange("C" + rowNumber).setValue('');
-      sheet.getRange("D" + rowNumber).setValue('');
+      rows.push(['', '', '', '', '', '']);
     }
     recordsIdx--;
     memoIdx++;
   }
+  
+  dashboard.getSheet().getRange('B50:G59').setValues(rows);
+  
+  var executionTime = Date.now() - startTime;
+  Logger.log('updateMemoList took ' + executionTime + ' ms');
 }
 
 function updateDashboardOnRecordsChange(updateMemo) {
+  var startTime = Date.now();
+  
   updateDaySummary();
   if (updateMemo) {
     updateMemoList();
   }
+  
+  var executionTime = Date.now() - startTime;
+  Logger.log('updateDashboardOnRecordsChange took ' + executionTime + ' ms');
 }
 
 var dashboard = {};
+
+dashboard.getSheet = function () {
+  if (!dashboard.sheet) {
+    dashboard.sheet = SpreadsheetApp.getActive().getSheetByName('dashboard');
+  }
+  return dashboard.sheet;
+}
 
 /**
  * サマリーを作るときの一レコード
@@ -53,6 +70,8 @@ dashboard.ICON = {
 };
 
 dashboard.createDaySummary = function() {
+  var startTime = Date.now();
+  
   var date = new Date();
   var todayString = date.toLocaleDateString();
   date.setDate(date.getDate() - 1);
@@ -108,11 +127,15 @@ dashboard.createDaySummary = function() {
     recordsIdx--;
   }
   Logger.log('createDaySummary : ' + JSON.stringify(summaries));
+  var executionTime = Date.now() - startTime;
+  Logger.log('createDaySummary took ' + executionTime + ' ms');
   return summaries;
 }
 
 dashboard.writeDaySummary = function(summaries) {
-  var sheet = SpreadsheetApp.getActive().getSheetByName(DASHBOARD_SHEET_NAME);
+  var startTime = Date.now();
+  
+  var rows = [];
   summaries.forEach(function(summary, index) {
     var startDateTime = summary.startDateTime;
     var endDateTime = new Date(startDateTime);
@@ -136,13 +159,13 @@ dashboard.writeDaySummary = function(summaries) {
     if (summary.memoCnt) {
       summaryRangeString = (summaryRangeString ? summaryRangeString + ' ' : '') + dashboard.createSummaryString(TYPE.MEMO, summary.memoCnt);
     }
-    
-    var rowNumber = 5 + index;
-    var dateTimeRange = sheet.getRange('B' + rowNumber);
-    dateTimeRange.setValue(dateTimeRangeString)
-    var summaryRange = sheet.getRange('D' + rowNumber);
-    summaryRange.setValue(summaryRangeString);
+
+    rows.push([dateTimeRangeString, '', summaryRangeString, '', '', '']);    
   });
+  dashboard.getSheet().getRange('B5:G28').setValues(rows);
+  
+  var executionTime = Date.now() - startTime;
+  Logger.log('writeDaySummary took ' + executionTime + ' ms');
 };
 
 dashboard.createSummaryString = function(type, cnt) {

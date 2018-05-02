@@ -10,6 +10,8 @@ const SCRIPT_ID = process.env['SCRIPT_ID'];
 const gasAccessor = {};
 
 gasAccessor.executeFunction = function (functionName, callback, opt_parameter) {
+    var startTime = Date.now();
+    
     console.log('executeFunction started [functionName=' + functionName + ', parameter=' + opt_parameter);
     const auth = new OAuth2(CLIENT_ID, CLIENT_SECRET);
     auth.setCredentials({
@@ -26,11 +28,15 @@ gasAccessor.executeFunction = function (functionName, callback, opt_parameter) {
             devMode: true
         }
     }, (err, result) => {
+        var turnAroundTime = Date.now() - startTime;
+        console.log(functionName + ' execution took ' + turnAroundTime + ' ms');
         if (err) {
             console.error(err);
         } else {
             console.log(result.data.response.result);
             callback(result.data.response.result);
+            var callbackExecutionTime = Date.now() - startTime - turnAroundTime;
+            console.log('callback execution took ' + callBackExecutionTime + ' ms');
         }
     });
 };
