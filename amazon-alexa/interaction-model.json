@@ -1,0 +1,558 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "育児ノート",
+            "intents": [
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "RegisterUnchiIntent",
+                    "slots": [],
+                    "samples": [
+                        "うんち記録して",
+                        "うんこ記録して",
+                        "うんこを記録して",
+                        "うんちを記録して",
+                        "うんこ",
+                        "うんち"
+                    ]
+                },
+                {
+                    "name": "RegisterOshikkoIntent",
+                    "slots": [],
+                    "samples": [
+                        "おしっこ",
+                        "しーしー記録して",
+                        "シーシーを記録して",
+                        "しっこを記録して",
+                        "しっこ記録して",
+                        "おしっこを記録して",
+                        "おしっこ記録して"
+                    ]
+                },
+                {
+                    "name": "RegisterOppaiIntent",
+                    "slots": [],
+                    "samples": [
+                        "母乳記録して",
+                        "母乳を記録して",
+                        "母乳",
+                        "おっぱい記録して",
+                        "おっぱいを記録して",
+                        "おっぱい"
+                    ]
+                },
+                {
+                    "name": "RegisterMilkIntent",
+                    "slots": [
+                        {
+                            "name": "volume",
+                            "type": "AMAZON.NUMBER",
+                            "samples": [
+                                "{volume} ミリリットルです",
+                                "{volume} シーシー",
+                                "{volume}",
+                                "{volume} ミリ",
+                                "{volume} ミリリットル"
+                            ]
+                        }
+                    ],
+                    "samples": [
+                        "{volume} のミルクを記録して",
+                        "ミルク記録して",
+                        "ミルク",
+                        "ミルクを記録して",
+                        "ミルク {volume} シーシーを記録して",
+                        "ミルク {volume} ミリを記録して",
+                        "ミルク {volume} ミリリットルを記録して",
+                        "ミルク {volume} を記録して",
+                        "ミルク {volume} 記録して",
+                        "ミルク {volume} あげました",
+                        "ミルク {volume} 飲みました",
+                        "ミルク {volume} 飲ませたよ",
+                        "{volume} シーシーのミルクを記録して",
+                        "{volume} ミリのミルクを記録して",
+                        "{volume} ミリリットルのミルクを記録して",
+                        "ミルク {volume} シーシー",
+                        "ミルク {volume} ミリ",
+                        "ミルク {volume}",
+                        "ミルク {volume} ミリリットル",
+                        "ミルクを {volume} ミリリットル記録して"
+                    ]
+                },
+                {
+                    "name": "RegisterUnchiAndOshikkoIntent",
+                    "slots": [],
+                    "samples": [
+                        "うんちとおしっこ記録して",
+                        "うんことおしっこを記録して",
+                        "おしっことうんちを記録して",
+                        "おしっことうんち記録して",
+                        "おしっことうんこ記録して",
+                        "おしっことうんこを記録して",
+                        "うんちとおしっこを記録して",
+                        "うんことおしっこ",
+                        "うんちとおしっこ",
+                        "おしっことうんち",
+                        "おしっことうんこ",
+                        "おしっことうんこ両方",
+                        "おしっことうんち両方",
+                        "うんことおしっこ両方",
+                        "うんちとおしっこ両方"
+                    ]
+                },
+                {
+                    "name": "GetLastOppaiAndMilkIntent",
+                    "slots": [],
+                    "samples": [
+                        "最後のおっぱいの時間を教えて",
+                        "前回のおっぱい何時ごろだった",
+                        "前回のミルクいつだったか教えて",
+                        "前回のミルクいつか教えて",
+                        "前回のミルク",
+                        "前回のおっぱい",
+                        "前のおっぱいいつか教えて",
+                        "前のミルクいつか教えて",
+                        "前のミルクいつ",
+                        "前におっぱいあげたのいつ",
+                        "最後におっぱいあげたのいつか教えて",
+                        "最後のおっぱいを教えて",
+                        "さいごにミルクあげたのいつ",
+                        "最後におっぱいあげたのいつだっけ",
+                        "最後にあげたの何時だっけ",
+                        "最後の母乳",
+                        "最後のミルク",
+                        "最後のおっぱい",
+                        "最後のおっぱい教えて",
+                        "最後のおっぱいとミルク教えて"
+                    ]
+                },
+                {
+                    "name": "GetDailySummaryIntent",
+                    "slots": [
+                        {
+                            "name": "date",
+                            "type": "AMAZON.DATE"
+                        }
+                    ],
+                    "samples": [
+                        "まとめ",
+                        "サマリー",
+                        "{date} ってどうだった",
+                        "{date} ミルク何ミリ飲んだ",
+                        "{date} ミルク何ミリリットル飲んだ",
+                        "{date} ミルク何ミリあげた",
+                        "{date} おっぱいどれだけあげた",
+                        "{date} うんちどれだけした",
+                        "{date} おしっこ何回",
+                        "{date} におしっこ何回した",
+                        "おっぱい何回あげた",
+                        "おっぱい何回",
+                        "おしっこ何回",
+                        "うんち何回",
+                        "うんこ何回",
+                        "うんこ何回した",
+                        "{date} のサマリーを教えて",
+                        "{date} のサマリー",
+                        "{date} のミルク",
+                        "{date} のおっぱい",
+                        "{date} のおしっこ",
+                        "{date} のうんち",
+                        "おしっこの回数",
+                        "うんちの回数",
+                        "{date} を取得して",
+                        "{date} はどうだった",
+                        "{date} のまとめを教えて",
+                        "{date} のことを教えて",
+                        "{date} のミルク何ミリだった"
+                    ]
+                },
+                {
+                    "name": "GetLastUnchiIntent",
+                    "slots": [],
+                    "samples": [
+                        "前回のうんこ何分前",
+                        "前回のうんこ何時間前",
+                        "前のうんこなんじごろ",
+                        "最後のうんこ何時頃",
+                        "最後のうんこからどれぐらいたった",
+                        "最後のうんこいつごろ",
+                        "前回のうんこ",
+                        "前回のうんち",
+                        "前のうんこ",
+                        "前のうんち",
+                        "最後のうんこ",
+                        "最後のうんち"
+                    ]
+                },
+                {
+                    "name": "GetLastOshikkoIntent",
+                    "slots": [],
+                    "samples": [
+                        "最後のおしっこからどれぐらいたったか教えて",
+                        "前回のおしっこいつだっけ",
+                        "前のおしっこ何時頃だったか教えて",
+                        "前のおしっこ教えて",
+                        "前回のおしっこいつごろだっけ",
+                        "前回のおしっこ",
+                        "前のおしっこ",
+                        "最後のおしっこ"
+                    ]
+                },
+                {
+                    "name": "RegisterMemoIntent",
+                    "slots": [
+                        {
+                            "name": "content",
+                            "type": "MEMO",
+                            "samples": [
+                                "{content} で",
+                                "{content} と記録して",
+                                "{content}",
+                                "{content} ってメモして"
+                            ]
+                        }
+                    ],
+                    "samples": [
+                        "メモに {content} を書いておいて",
+                        "{content} とメモに書いといて",
+                        "{content} とメモに記録して",
+                        "{content} ってメモに記録して",
+                        "{content} をメモ",
+                        "メモに {content} って書いて",
+                        "メモに {content} って記録して",
+                        "{content} ってメモして",
+                        "メモを記録して",
+                        "メモ記録して",
+                        "メモ"
+                    ]
+                }
+            ],
+            "types": [
+                {
+                    "name": "MEMO",
+                    "values": [
+                        {
+                            "name": {
+                                "value": "今日はごきげんでした"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "今日はご機嫌"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "手の爪が青い"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "腕が青い"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "唇が青い"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "顔が青い"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "顔が赤い"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "くしゃみとせきが多い"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "せきが多い"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "くしゃみが多い"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "鼻水が出た"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "鼻水が出た"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "ギャン泣きした"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "汗をたくさんかいた"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "汗をたくさんかいた"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "部屋が暑い"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "あせだらだら"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "熱が三十九度ある"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "熱が三十七度五分"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "おしっこに血が混じっている"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "オフロに入った"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "沐浴した"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "おりものが多い"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "うんちのにおいがおかしい"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "おむつかぶれができている"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "うんちの色が黄色っぽい"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "うんちの色がおかしい"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "おしっこしない"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "なかなか起きない"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "なかなか寝ない"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "動いた"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "ハイハイを始めた"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "疲れている"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "おじさんとおばさんが来た"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "ご機嫌ななめ"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "機嫌が悪い"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "すごく機嫌が悪い"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "ご機嫌"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "今日はご機嫌"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "今日はご機嫌"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "足の爪をきった"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "手の爪を切った"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "手の爪が長い"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "足の爪がのびてきた"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "自分で鼻を引っ掻いて血が出た"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "体温が三十八度あった"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "熱が高め"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "鼻ににきびができた"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "dialog": {
+            "intents": [
+                {
+                    "name": "RegisterMilkIntent",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": [
+                        {
+                            "name": "volume",
+                            "type": "AMAZON.NUMBER",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.854946788233.1180106204899"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "RegisterMemoIntent",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": [
+                        {
+                            "name": "content",
+                            "type": "MEMO",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.888246558283.1094070157599"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "prompts": [
+            {
+                "id": "Elicit.Slot.854946788233.1180106204899",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "何ミリリットル飲みましたか？"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "ミルクの量は何ミリリットルですか？"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.888246558283.1094070157599",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "何をメモしますか"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "内容はどうしますか"
+                    },
+                    {
+                        "type": "PlainText",
+                        "value": "内容を教えてください"
+                    }
+                ]
+            }
+        ]
+    }
+}
