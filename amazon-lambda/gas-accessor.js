@@ -6,6 +6,7 @@ const CLIENT_SECRET = process.env['CLIENT_SECRET'];
 const ACCESS_TOKEN = process.env['ACCESS_TOKEN'];
 const REFRESH_TOKEN = process.env['REFRESH_TOKEN'];
 const SCRIPT_ID = process.env['SCRIPT_ID'];
+const DEV_MODE = process.env['DEV_MODE'] ? /^true$/i.test(process.env['DEV_MODE']) : false;
 
 const gasAccessor = {};
 
@@ -25,7 +26,7 @@ gasAccessor.executeFunction = function (functionName, callback, opt_parameter) {
         resource: {
             function: functionName,
             parameters: [opt_parameter],
-            devMode: true
+            devMode: DEV_MODE
         }
     }, (err, result) => {
         var turnAroundTime = Date.now() - startTime;
