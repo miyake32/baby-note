@@ -308,7 +308,7 @@ records.getLastRecord = function () {
   return recordByType;
 }
 
-records.GET_RECORDS_MAX_COUNT = 100;
+records.GET_RECORDS_MAX_ROWS = 100;
 
 records.getRecords = function (opt_filters) {
   var startTime = Date.now();
@@ -340,17 +340,14 @@ records.getRecords = function (opt_filters) {
     };
   }
 
-  var createdRecords = [];  
+  var createdRecords = []; 
+  // limit number of records up to 100 when filter is not used
+  var initialIndex = rows.length < records.GET_RECORDS_MAX_ROWS + 1 ? 1 : rows.length - records.GET_RECORDS_MAX_ROWS;
   // start from 1 to skip header row
-  for (var i = 1; i < rows.length; i++) {
+  for (var i = initialIndex; i < rows.length; i++) {
     var row = rows[i];
     if (filter(row)) {
       createdRecords.push(records.createRecordFromRow(row, keys)); 
-    }
-    
-    // limit number of records up to 100 when filter is not used for speed
-    if (!opt_filters && createdRecords.length === records.GET_RECORDS_MAX_COUNT) {
-      break;
     }
   }
   createdRecords.sort(function(record1, record2) {
