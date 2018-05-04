@@ -342,7 +342,7 @@ records.getRecords = function (opt_filters) {
 
   var createdRecords = []; 
   // limit number of records up to 100 when filter is not used
-  var initialIndex = rows.length < records.GET_RECORDS_MAX_ROWS + 1 ? 1 : rows.length - records.GET_RECORDS_MAX_ROWS;
+  var initialIndex = (opt_filters || rows.length < records.GET_RECORDS_MAX_ROWS + 1) ? 1 : rows.length - records.GET_RECORDS_MAX_ROWS;
   // start from 1 to skip header row
   for (var i = initialIndex; i < rows.length; i++) {
     var row = rows[i];
@@ -394,4 +394,68 @@ records.getTimeElapsedFrom = function (lastRecord) {
   } else {
     return {hours: hours, minuts: Math.round((minutes % 60) / 10) * 10};
   }
+}
+
+records.aggregateRecords = function(targetRecords, summaryIntervalHours, opt_summaryTargetHours) {
+  var startTime = Date.now();
+  
+  var baseDateTime = new Date();
+  baseDateTime.setHours(Math.floor(baseDateTime.getHours() / summaryIntervalHours) * summaryIntervalHours);
+  baseDateTime.setMinutes(0);
+  baseDateTime.setSeconds(0);
+  
+  var summaries = [];
+  var summaryRows;
+  if (opt_summaryTargetHours) {
+    summaryRows = opt_summaryTargetHours / summaryIntervalHours;
+  } else {
+    var firstRecord = targetRecords[0];
+    var firstStartDateTime = new Date(firstRecord.date + ' ' + firstRecord.time);
+    firstStartDateTime.setHours(Math.floor(firstStartDateTime.getHours() / summaryIntervalHours) * summaryIntervalHours);
+    firstStartDateTime.setMinutes(0);
+    firstStartDateTime.setSeconds(0); 
+    summaryRows = Math.ceil((baseDateTime - firstStartDateTime) / 1000 / 60 / 60 / summaryIntervalHours);
+  }
+  for (var i = 0; i < summaryRows; i++) {
+    var startDateTime = new Date(baseDateTime);
+    startDateTime.setHours(startDateTime.getHours() - summaryIntervalHours * i);
+    summaries.push({startDateTime: startDateTime, unchiCnt: 0, oshikkoCnt: 0, oppaiCnt: 0, milkCnt: 0, milkVolume: 0, memoCnt: 0});
+  }
+  
+  var recordsIdx = targetRecords.length - 1;
+  var summaryIdx = 0;
+  while (recordsIdx > -1 && summaryIdx < summaries.length) {
+    var summary = summaries[summaryIdx];
+    var record = targetRecords[recordsIdx];
+    var recordDateTime = new Date(record.date + ' ' + record.time);
+    if (summary.startDateTime > recordDateTime) {
+      summaryIdx++;
+      continue;
+    }
+    
+    switch (record.type) {
+      case TYPE.UNCHI:
+        summary.unchiCnt++;
+        break;
+      case TYPE.OSHIKKO:
+        summary.oshikkoCnt++;
+        break;
+      case TYPE.OPPAI:
+        summary.oppaiCnt++;
+        break;
+      case TYPE.MILK:
+        summary.milkCnt++;
+        summary.milkVolume += record.parameter;
+        break;
+      case TYPE.MEMO:
+        summary.memoCnt++;
+        break;
+    }
+    
+    recordsIdx--;
+  }
+  Logger.log('aggregateRecords : ' + JSON.stringify(summaries));
+  var executionTime = Date.now() - startTime;
+  Logger.log('aggregateRecords took ' + executionTime + ' ms');
+  return summaries;
 }
