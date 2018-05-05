@@ -1,13 +1,5 @@
-function updateDashboardOnRecordsChange(updateMemo) {
-  var startTime = Date.now();
-  
-  dashboard.updateDaySummary();
-  if (updateMemo) {
-    dashboard.updateMemoList();
-  }
-  
-  var executionTime = Date.now() - startTime;
-  Logger.log('updateDashboardOnRecordsChange took ' + executionTime + ' ms');
+function reflectManualEdit() {
+  dashboard.updateDashboardOnRecordsChange(true)
 }
 
 var dashboard = {};
@@ -24,6 +16,19 @@ dashboard.MEMO_RANGE = 'B50:G59';
 
 dashboard.DAY_SUMMARY_INTERVAL_HOUR = 1;
 dashboard.DAY_SUMMARY_RANGE = 'B5:G28';
+
+
+dashboard.updateDashboardOnRecordsChange = function (updateMemo) {
+  var startTime = Date.now();
+  
+  dashboard.updateDaySummary();
+  if (updateMemo) {
+    dashboard.updateMemoList();
+  }
+  
+  var executionTime = Date.now() - startTime;
+  Logger.log('updateDashboardOnRecordsChange took ' + executionTime + ' ms');
+}
 
 dashboard.updateMemoList = function () {
   var startTime = Date.now();

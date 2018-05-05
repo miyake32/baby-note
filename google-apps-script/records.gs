@@ -25,22 +25,22 @@ function onFormSubmit(e) {
   var memo = e.namedValues[memoKey][0];
     
   if (events.indexOf(TYPE_NAME.unchi) > -1) {
-    records.appendJournalRecordWithSpecificDate(date, TYPE.UNCHI);
+    records.appendJournalRecord(date, TYPE.UNCHI);
   }
   if (events.indexOf(TYPE_NAME.oshikko) > -1) {
-    records.appendJournalRecordWithSpecificDate(date, TYPE.OSHIKKO);
+    records.appendJournalRecord(date, TYPE.OSHIKKO);
   }
   if (events.indexOf(TYPE_NAME.oppai) > -1) {
-    records.appendJournalRecordWithSpecificDate(date, TYPE.OPPAI);
+    records.appendJournalRecord(date, TYPE.OPPAI);
   }
   
   if (milkVolume) {
-    records.appendJournalRecordWithSpecificDate(date, TYPE.MILK, milkVolume);
+    records.appendJournalRecord(date, TYPE.MILK, milkVolume);
   }
   if (memo) {
-    records.appendJournalRecordWithSpecificDate(date, TYPE.MEMO, memo);
+    records.appendJournalRecord(date, TYPE.MEMO, memo);
   }
-  updateDashboardOnRecordsChange(!!memo);
+  dashboard.updateDashboardOnRecordsChange(!!memo);
   
   var executionTime = Date.now() - startTime;
   Logger.log('onFormSubmit took ' + executionTime + ' ms');
@@ -53,10 +53,9 @@ function onFormSubmit(e) {
 function registerUnchi() {
   var startTime = Date.now();
 
-  records.appendJournalRecord(TYPE.UNCHI);
-  updateDashboardOnRecordsChange();
+  records.enqueueJournalRecord(TYPE.UNCHI);
   
-  var values = {unchiCount: records.countRecords(TYPE.UNCHI, new Date())};
+  var values = {unchiCount: recordsBufferCache.countRecords(new Date(), TYPE.UNCHI, 1)};
   Logger.log('registerUnchi : ' + JSON.stringify(values));
   
   var executionTime = Date.now() - startTime;
@@ -68,10 +67,9 @@ function registerUnchi() {
 function registerOshikko() {
   var startTime = Date.now();
 
-  records.appendJournalRecord(TYPE.OSHIKKO);
-  updateDashboardOnRecordsChange();
+  records.enqueueJournalRecord(TYPE.OSHIKKO);
 
-  var values = {oshikkoCount: records.countRecords(TYPE.OSHIKKO, new Date())};
+  var values = {oshikkoCount: recordsBufferCache.countRecords(new Date(), TYPE.OSHIKKO, 1)};
   Logger.log('registerOshikko : ' + JSON.stringify(values));
   
   var executionTime = Date.now() - startTime;
@@ -83,13 +81,12 @@ function registerOshikko() {
 function registerUnchiAndOshikko() {
   var startTime = Date.now();
 
-  records.appendJournalRecord(TYPE.UNCHI);
-  records.appendJournalRecord(TYPE.OSHIKKO);
-  updateDashboardOnRecordsChange();
+  records.enqueueJournalRecord(TYPE.UNCHI);
+  records.enqueueJournalRecord(TYPE.OSHIKKO);
   
   var values = {
-    unchiCount: records.countRecords(TYPE.UNCHI, new Date()), 
-    oshikkoCount: records.countRecords(TYPE.OSHIKKO, new Date())
+    unchiCount: recordsBufferCache.countRecords(new Date(), TYPE.UNCHI, 1), 
+    oshikkoCount: recordsBufferCache.countRecords(new Date(), TYPE.OSHIKKO, 1)
   };
   Logger.log('registerUnchiAndOshikko : ' + JSON.stringify(values));
   
@@ -102,10 +99,9 @@ function registerUnchiAndOshikko() {
 function registerOppai() {
   var startTime = Date.now();
 
-  records.appendJournalRecord(TYPE.OPPAI);
-  updateDashboardOnRecordsChange();
+  records.enqueueJournalRecord(TYPE.OPPAI);
 
-  var values = {oppaiCount: records.countRecords(TYPE.OPPAI, new Date())};
+  var values = {oppaiCount: recordsBufferCache.countRecords(new Date(), TYPE.OPPAI, 1)};
   Logger.log('registerOppai : ' + JSON.stringify(values));
   
   var executionTime = Date.now() - startTime;
@@ -115,24 +111,15 @@ function registerOppai() {
 }
 
 function registerMilk(volume) {
+  // for test
+  if (!volume) {
+    volume = 30;
+  }
+  
   var startTime = Date.now();
 
-  records.appendJournalRecord(TYPE.MILK, volume || 0);
-  updateDashboardOnRecordsChange();
-  
-  var dateStr = new Date().toLocaleDateString();
-  var retrievedRecords = records.getRecords([
-    {column: COLUMN.DATE, regExp: new RegExp('^' + dateStr + '$')},
-    {column: COLUMN.EVENT, regExp: new RegExp('^' + TYPE_NAME[TYPE.MILK] + '$')}
-  ]);
-  
-  var sum = 0;
-  retrievedRecords.forEach(function(item) {
-    var volume = Number(item.parameter);
-    if (!isNaN(volume)) {
-      sum += volume;
-    }
-  })
+  records.enqueueJournalRecord(TYPE.MILK, volume || 0);
+  var sum = recordsBufferCache.sumUpMilkVolume(new Date(), volume);
   
   var values = {sumOfMilkVolume: sum};
   Logger.log('registerMilk : ' + JSON.stringify(values));
@@ -144,10 +131,14 @@ function registerMilk(volume) {
 }
 
 function registerMemo(content) {
+  // for test
+  if (!content) {
+    content = 'test';
+  }
+  
   var startTime = Date.now();
 
-  records.appendJournalRecord(TYPE.MEMO, content);
-  updateDashboardOnRecordsChange(true);
+  records.enqueueJournalRecord(TYPE.MEMO, content);
   
   values = {};
 
@@ -250,19 +241,28 @@ records.getSheet = function () {
   return records.sheet;
 }
 
-records.appendJournalRecord = function (type, opt_parameter) {
+records.enqueueJournalRecord = function (type, opt_parameter) {
   var startTime = Date.now();
+  Logger.log('enqueueJournalRecord started');
 
-  var currentDateTime = new Date();
-  records.appendJournalRecordWithSpecificDate(currentDateTime, type, opt_parameter);
+  var date = new Date();
+  recordsBufferCache.enqueue(records.createJournalRecordRowContent(date, type ,opt_parameter));
+    
+  var executionTime = Date.now() - startTime;
+  Logger.log('enqueueJournalRecord took ' + executionTime + ' ms');
+};
+
+records.appendJournalRecord = function (date, type, opt_parameter) {
+  var startTime = Date.now();
+  Logger.log('appendJournalRecord started');
+  
+  records.getSheet().appendRow(records.createJournalRecordRowContent(date, type ,opt_parameter));
   
   var executionTime = Date.now() - startTime;
   Logger.log('appendJournalRecord took ' + executionTime + ' ms');
 };
 
-records.appendJournalRecordWithSpecificDate = function (date, type, opt_parameter) {
-  var startTime = Date.now();
-  
+records.createJournalRecordRowContent = function (date, type, opt_parameter) {
   var row = [];
   row.push("'" + date.toLocaleDateString());
   row.push("'" + date.toLocaleTimeString().replace(/[^:0-9]/g, ''));
@@ -270,24 +270,8 @@ records.appendJournalRecordWithSpecificDate = function (date, type, opt_paramete
   if (opt_parameter) {
       row.push(opt_parameter);
   }
-  
-  records.getSheet().appendRow(row);
-  
-  var executionTime = Date.now() - startTime;
-  Logger.log('appendJournalRecordWithSpecificDate took ' + executionTime + ' ms');
-};
-
-records.countRecords = function (type, opt_date) {
-  var date = opt_date ? new Date(opt_date) : new Date();
-  var dateStr = date.toLocaleDateString();
-
-  var retrievedRecords = records.getRecords([
-    {column: COLUMN.DATE, regExp: new RegExp('^' + dateStr + '$')},
-    {column: COLUMN.EVENT, regExp: new RegExp('^' + TYPE_NAME[type] + '$')}
-  ]);
-  
-  return retrievedRecords.length;  
-};
+  return row;
+}
 
 records.getLastRecord = function () {
   var retrievedRecords = records.getRecords();
@@ -312,6 +296,7 @@ records.GET_RECORDS_MAX_ROWS = 100;
 
 records.getRecords = function (opt_filters) {
   var startTime = Date.now();
+  Logger.log('getRecords started');
   
   var rows = records.getSheet().getDataRange().getValues();
   var keys = rows.slice(0, 1)[0];
@@ -398,6 +383,7 @@ records.getTimeElapsedFrom = function (lastRecord) {
 
 records.aggregateRecords = function(targetRecords, summaryIntervalHours, opt_summaryTargetHours) {
   var startTime = Date.now();
+  Logger.log('aggregateRecords started');
   
   var baseDateTime = new Date();
   baseDateTime.setHours(Math.floor(baseDateTime.getHours() / summaryIntervalHours) * summaryIntervalHours);
