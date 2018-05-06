@@ -11,9 +11,9 @@ function writeRecordsInQueue () {
   Logger.log('writeRecordsInQueue took ' + executionTime + ' ms');
 }
 
-function preserveCache () {
+function maintainCache () {
   var startTime = Date.now();
-  Logger.log('preserveCache started');
+  Logger.log('maintainCache started');
   
   var cache = recordsBufferCache.getCache();
   
@@ -21,11 +21,19 @@ function preserveCache () {
     recordsBufferCache.QUEUE_ENQUEUE_POINTER_KEY, 
     recordsBufferCache.QUEUE_DEQUEUE_POINTER_KEY
   ].forEach(function (key) {
-    cache.put(key, cache.get(key), 21600);
+    var value = cache.get(key);
+    cache.put(key, value, 21600);
+    Logger.log('[key='+ key + ', value=' + value + ']');
   });
   
+  var date = new Date();
+  Object.keys(TYPE).forEach(function(typeKey) {
+    recordsBufferCache.countRecords(date, TYPE[typeKey], 0, true);
+  });
+  recordsBufferCache.sumUpMilkVolume(date, 0);
+  
   var executionTime = Date.now() - startTime;
-  Logger.log('preserveCache took ' + executionTime + ' ms');
+  Logger.log('maintainCache took ' + executionTime + ' ms');
 }
 
 // for test
@@ -106,14 +114,14 @@ recordsBufferCache.dequeue = function() {
   return rowCnt;
 }
 
-recordsBufferCache.countRecords = function (date, type, enqueuedRecordsCnt) {
+recordsBufferCache.countRecords = function (date, type, enqueuedRecordsCnt, opt_reset) {
   var startTime = Date.now();
   Logger.log('countRecords started [date=' + date + ', type=' + type + ']');
   
   var dateStr = date.toLocaleDateString();
   
   var cnt = recordsBufferCache.getRecordsCount(type, dateStr);
-  if (cnt === null) {
+  if (cnt === null || opt_reset) {
     Logger.log('count cache is missing. fetching from spreadsheet');
     var retrievedRecords = records.getRecords([
       {column: COLUMN.DATE, regExp: new RegExp('^' + dateStr + '$')},
@@ -121,7 +129,9 @@ recordsBufferCache.countRecords = function (date, type, enqueuedRecordsCnt) {
     ]);
     cnt = retrievedRecords.length;
   }
+  Logger.log('retrieved count is ' + cnt);
   cnt = Number(cnt) + enqueuedRecordsCnt;
+  Logger.log('new count is ' + cnt);
   recordsBufferCache.putRecordsCount(type, dateStr, cnt);
   
   var executionTime = Date.now() - startTime;
@@ -141,13 +151,13 @@ recordsBufferCache.putRecordsCount = function (type, dateStr, cnt) {
 }
 
 
-recordsBufferCache.sumUpMilkVolume = function (date, enqueuedMilkVolume) {
+recordsBufferCache.sumUpMilkVolume = function (date, enqueuedMilkVolume, opt_reset) {
   var startTime = Date.now();
   Logger.log('sumUpMilkVolume started [date=' + date + ']');
   
   var dateStr = date.toLocaleDateString();
   var volume = recordsBufferCache.getMilkVolume(dateStr);
-  if (volume === null) {
+  if (volume === null || opt_reset) {
     Logger.log('volume cache is missing. fetching from spreadsheet');
     var retrievedRecords = records.getRecords([
       {column: COLUMN.DATE, regExp: new RegExp('^' + dateStr + '$')},
@@ -162,7 +172,9 @@ recordsBufferCache.sumUpMilkVolume = function (date, enqueuedMilkVolume) {
       }
     });
   }
+  Logger.log('retrieved volume is ' + volume);
   volume = Number(volume) + enqueuedMilkVolume;
+  Logger.log('new volume is ' + volume);
   recordsBufferCache.putMilkVolume(dateStr, volume);
   
   var executionTime = Date.now() - startTime;
