@@ -31,10 +31,12 @@ gasAccessor.executeFunction = function (functionName, callback, opt_parameter) {
     }, (err, result) => {
         var turnAroundTime = Date.now() - startTime;
         console.log(functionName + '  API execution took ' + turnAroundTime + ' ms');
-        if (err) {
-            console.error(err);
+        if (err || result.data.error) {
+            console.error(JSON.stringify(err));
+            console.error(JSON.stringify(result.data.error));
+            throw 'API Execution Failure';
         } else {
-            console.log(result.data.response.result);
+            console.log(JSON.stringify(result.data.response));
             callback(result.data.response.result);
             var callbackExecutionTime = Date.now() - startTime - turnAroundTime;
             console.log('callback execution took ' + callbackExecutionTime + ' ms');
